@@ -1,0 +1,34 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  sensitive   = false
+  default     = "eu-central-1"
+}
+
+variable "instance_type" {
+  description = "AWS EC2 tier"
+  default = "t2.micro"
+}
+
+variable "ec2_ami" {
+  description = "AWS AMI for EC2 instances"
+  default = "ami-076309742d466ad69"
+}
+
+
+variable "key_pair_name" {
+  description = "Key pair to use with EC2 instances"
+  default = "default-key-pair"
+}
+
+variable "public_key_path" {
+}
+
+variable "private_key_path" {
+}
+
+variable "env-tag" {
+  description = "Tag which will be put to every resource in the provisioned environment"
+  type = string
+  default = "aws-terraform-demo"
+}
