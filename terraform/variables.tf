@@ -46,5 +46,6 @@ variable "ansible_inventory_template_path" {
 variable "ansible_inventory_rendered_path" {
 }
 
-variable "ansible_playbook" {
+variable "ansible_playbooks" {
+  type = list
 }

@@ -1,4 +1,4 @@
-- name: ansible play to copy a webpage and setup nginx to serve it on an ec2 instance
+- name: setup nginx and copy a webpage
   hosts: services
   become: true
   tasks:

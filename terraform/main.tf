@@ -130,3 +130,37 @@ resource "aws_instance" "service" {
     inline = ["echo terraform connected!"]
   }
 }
+
+
+resource "aws_instance" "elasticsearch" {
+  ami                    = var.ec2_ami
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.subnet.id
+  vpc_security_group_ids = [aws_security_group.secgroup.id]
+
+  key_name = aws_key_pair.key_pair.id
+
+  depends_on = [
+    aws_subnet.subnet,
+    aws_security_group.secgroup,
+    aws_key_pair.key_pair
+  ]
+
+  tags = {
+    env = var.env_tag
+    role = "elk_logging_monitoring",
+    name = "elasticsearch"
+  }
+
+  # wait until the resource is "reachable" by connecting to it
+  provisioner "remote-exec" {
+    connection {
+      host = self.public_ip
+      user = var.ec2_user
+      type = "ssh"
+      private_key = file(var.private_key_path)
+    }
+
+    inline = ["echo terraform connected!"]
+  }
+}

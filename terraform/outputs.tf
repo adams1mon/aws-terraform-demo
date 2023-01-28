@@ -1,6 +1,7 @@
 resource "local_file" "ansible_inventory" {
   content = templatefile(var.ansible_inventory_template_path, {
-    public_ips = aws_instance.service[*].public_ip
+    service_ips = aws_instance.service[*].public_ip,
+    elasticsearch_ips = aws_instance.elasticsearch[*].public_ip
     user = var.ec2_user,
     private_key_path = var.private_key_path
   })
@@ -8,11 +9,12 @@ resource "local_file" "ansible_inventory" {
 }
 
 resource "null_resource" "run_ansible" { 
-
   provisioner "local-exec" {
     command = <<EOT
       export ANSIBLE_HOST_KEY_CHECKING=False &&
-      ansible-playbook -i ${var.ansible_inventory_rendered_path} ${var.ansible_playbook}
+      %{for playbook in var.ansible_playbooks}
+      ansible-playbook -i ${var.ansible_inventory_rendered_path} ${playbook} \
+      %{endfor}
     EOT
   }
   
