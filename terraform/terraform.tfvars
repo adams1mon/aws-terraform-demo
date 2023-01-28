@@ -1,3 +1,6 @@
-# key_pair_name = "agile_devops_keypair_ec2"
-public_key_path = "./demo_ec2.pub"
-private_key_path = "./pdae-ec2.pem"
+public_key_path = "../keys/demo_ec2.pub"
+private_key_path = "../keys/pdae-ec2.pem"
+
+ansible_inventory_template_path = "./templates/inventory.ini.tftpl"
+ansible_inventory_rendered_path = "../ansible/inventory.ini"
+ansible_playbook = "../ansible/install_nginx.yaml"

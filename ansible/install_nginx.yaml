@@ -1,0 +1,14 @@
+- name: ansible play to copy a webpage and setup nginx to serve it on an ec2 instance
+  hosts: services
+  become: true
+  tasks:
+    - name: install nginx
+      shell: amazon-linux-extras install nginx1 -y
+    - name: copy website
+      copy: 
+        src: index.html
+        dest: /usr/share/nginx/html/
+    - name: start nginx
+      service:
+        name: nginx
+        state: started

@@ -15,7 +15,7 @@ provider "aws" {
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    env = var.env-tag
+    env = var.env_tag
   }
 }
 
@@ -25,7 +25,7 @@ resource "aws_internet_gateway" "igw" {
     aws_vpc.vpc
   ]
   tags = {
-    env = var.env-tag
+    env = var.env_tag
   }
 }
 
@@ -52,12 +52,12 @@ resource "aws_subnet" "subnet" {
     aws_vpc.vpc
   ]
   tags = {
-    env = var.env-tag
+    env = var.env_tag
   }
 }
 
 resource "aws_security_group" "secgroup" {
-  # name   = "secgroup"
+  name   = "secgroup"
   vpc_id = aws_vpc.vpc.id
   ingress {
     from_port   = 22
@@ -83,7 +83,7 @@ resource "aws_security_group" "secgroup" {
   ]
 
   tags = {
-    env = var.env-tag
+    env = var.env_tag
   }
 }
 
@@ -92,27 +92,19 @@ resource "aws_key_pair" "key_pair" {
   public_key = file(var.public_key_path)
 
   tags = {
-    env = var.env-tag
+    env = var.env_tag
   }
 }
 
-resource "aws_instance" "service_1" {
+resource "aws_instance" "service" {
+  count = var.service_count
+
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
   vpc_security_group_ids = [aws_security_group.secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
-  # connection {
-  #   type        = "ssh"
-  #   user        = "ec2-user"
-  #   host        = self.public_ip
-  #   private_key = file(var.private_key_path)
-  # }
-
-  # provisioner "local-exec" {
-  #   command = "echo ${self.public_ip} > public_ip.txt"
-  # }
 
   depends_on = [
     aws_subnet.subnet,
@@ -121,6 +113,20 @@ resource "aws_instance" "service_1" {
   ]
 
   tags = {
-    env = var.env-tag
+    env = var.env_tag
+    role = "service",
+    name = "service_${count.index}"
+  }
+
+  # wait until the resource is "reachable" by connecting to it
+  provisioner "remote-exec" {
+    connection {
+      host = aws_instance.service[count.index].public_ip
+      user = var.ec2_user
+      type = "ssh"
+      private_key = file(var.private_key_path)
+    }
+
+    inline = ["echo terraform connected!"]
   }
 }

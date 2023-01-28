@@ -1,15 +1,22 @@
-data "template_file" "ansible_inventory" {
-  template = file("./templates/inventory.ini.tpl")
-  count = length(aws_instance.service_1[*].public_ip)
-  vars = {
-    public_ip = element(aws_instance.service_1[*].public_ip, count.index)
-    user = "ec2-user"
+resource "local_file" "ansible_inventory" {
+  content = templatefile(var.ansible_inventory_template_path, {
+    public_ips = aws_instance.service[*].public_ip
+    user = var.ec2_user,
     private_key_path = var.private_key_path
-  }
+  })
+  filename = var.ansible_inventory_rendered_path
 }
 
-# generate the Ansible inventory file
-resource "local_file" "ansible_inventory" {
-  content = data.template_file.ansible_inventory.rendered
-  filename = "../ansible/inventory.ini"
+resource "null_resource" "run_ansible" { 
+
+  provisioner "local-exec" {
+    command = <<EOT
+      export ANSIBLE_HOST_KEY_CHECKING=False &&
+      ansible-playbook -i ${var.ansible_inventory_rendered_path} ${var.ansible_playbook}
+    EOT
+  }
+  
+  depends_on = [
+    local_file.ansible_inventory
+  ]
 }
