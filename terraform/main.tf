@@ -56,8 +56,8 @@ resource "aws_subnet" "subnet" {
   }
 }
 
-resource "aws_security_group" "secgroup" {
-  name   = "secgroup"
+resource "aws_security_group" "service_secgroup" {
+  name   = "service_secgroup"
   vpc_id = aws_vpc.vpc.id
   ingress {
     from_port   = 22
@@ -102,13 +102,13 @@ resource "aws_instance" "service" {
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
-  vpc_security_group_ids = [aws_security_group.secgroup.id]
+  vpc_security_group_ids = [aws_security_group.service_secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
 
   depends_on = [
     aws_subnet.subnet,
-    aws_security_group.secgroup,
+    aws_security_group.service_secgroup,
     aws_key_pair.key_pair
   ]
 
@@ -132,17 +132,49 @@ resource "aws_instance" "service" {
 }
 
 
+resource "aws_security_group" "monitoring_secgroup" {
+  name   = "monitoring_secgroup"
+  vpc_id = aws_vpc.vpc.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # all traffic from inside the vpc
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  depends_on = [
+    aws_vpc.vpc
+  ]
+
+  tags = {
+    env = var.env_tag
+  }
+}
+
 resource "aws_instance" "elasticsearch" {
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
-  vpc_security_group_ids = [aws_security_group.secgroup.id]
+  vpc_security_group_ids = [aws_security_group.monitoring_secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
 
   depends_on = [
     aws_subnet.subnet,
-    aws_security_group.secgroup,
+    aws_security_group.monitoring_secgroup,
     aws_key_pair.key_pair
   ]
 

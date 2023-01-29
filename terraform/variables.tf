@@ -49,3 +49,12 @@ variable "ansible_inventory_rendered_path" {
 variable "ansible_playbooks" {
   type = list
 }
+
+variable "metricbeat_template_path" {
+}
+
+variable "metricbeat_rendered_path" {
+}
+
+variable "elk_version" {
+}

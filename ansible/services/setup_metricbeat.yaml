@@ -1,0 +1,19 @@
+- name: download and setup metrcibeat
+  hosts: services
+  become: true
+  tasks:
+    - name: download metricbeat
+      shell: curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-{{elk_version}}-x86_64.rpm
+    - name: install metricbeat
+      shell: rpm -i metricbeat-{{elk_version}}-x86_64.rpm
+    - name: copy metricbeat config file
+      copy:
+        src: metricbeat.yaml
+        dest: /etc/metricbeat/metricbeat.yml
+    - name: enable metricbeat "system" module
+      shell: metricbeat modules enable system
+    - name: start metricbeat
+      service:
+        name: metricbeat
+        state: started
+      

@@ -1,8 +1,8 @@
 - name: ansible play to install and configure elasticsearch
   hosts: elasticsearch
   become: true
-  vars: 
-    elk_version: 7.10.1
+  # vars: 
+  #   elk_version: 7.10.1
   tasks:
     - name: download elasticsearch
       shell: "wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{elk_version}}-x86_64.rpm"

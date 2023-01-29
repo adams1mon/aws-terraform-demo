@@ -5,6 +5,12 @@ ansible_inventory_template_path = "./templates/inventory.ini.tftpl"
 ansible_inventory_rendered_path = "../ansible/inventory.ini"
 
 ansible_playbooks = [
-  "../ansible/nginx/install_nginx.yaml",
-  "../ansible/elk/elasticsearch/install_elasticsearch.yaml",
+  "../ansible/services/install_nginx.yaml",
+  "../ansible/services/setup_metricbeat.yaml",
+  # "../ansible/elk/elasticsearch/install_elasticsearch.yaml",
 ]
+
+metricbeat_template_path = "./templates/metricbeat.yml.tftpl"
+metricbeat_rendered_path = "../ansible/services/metricbeat.yml"
+
+elk_version = "7.10.1"
