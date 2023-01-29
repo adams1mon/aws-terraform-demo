@@ -1,15 +1,17 @@
-- name: ansible play to install and configure elasticsearch
+- name: install and configure elasticsearch
   hosts: elasticsearch
   become: true
   tasks:
-    - name: download kibana
-      shell: "wget https://artifacts.elastic.co/downloads/kibana/kibana-{{elk_version}}-x86_64.rpm"
-    - name: install kibana
-      shell: "rpm -i kibana-{{elk_version}}-x86_64.rpm"
+    - name: download elasticsearch
+      shell: "ls | grep -q '^elasticsearch-{{ elk_version }}-x86_64.rpm$' || \
+             wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elk_version }}-x86_64.rpm"
+    - name: install elasticsearch
+      shell: "rpm -i elasticsearch-{{ elk_version }}-x86_64.rpm"
+      ignore_errors: true
     - name: copy jvm options
       copy: 
         src: jvm.options
-        dest: /etc/kibana/jvm.options.d/
-    - name: start kibana via systemctl
+        dest: /etc/elasticsearch/jvm.options.d/
+    - name: start elasticsearch via systemctl
       shell: "sudo /bin/systemctl daemon-reload && \
-              sudo systemctl start kibana.service"
+              sudo systemctl start elasticsearch.service"

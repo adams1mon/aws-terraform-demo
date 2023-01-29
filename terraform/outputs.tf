@@ -1,24 +1,46 @@
-resource "local_file" "ansible_inventory" {
-
-  content = templatefile(var.ansible_inventory_template_path, {
-    service_ips = aws_instance.service[*].public_ip,
-    elasticsearch_ip = aws_instance.elasticsearch.public_ip,
-    kibana_ip = aws_instance.kibana.public_ip,
-    elk_version = var.elk_version,
-    user = var.ec2_user,
-    private_key_path = var.private_key_path
-  })
-
-  filename = var.ansible_inventory_rendered_path
-}
+# TODO: use private ips here
 
 resource "local_file" "metricbeat_config" {
+  content = templatefile(
+    "${var.working_dir}/${var.metricbeat_template_path}", 
+    {
+      elasticsearch_ip = aws_instance.elasticsearch.public_ip,
+      kibana_ip = aws_instance.kibana.public_ip
+    }
+  )
+  filename = "${var.working_dir}/${var.metricbeat_rendered_path}"
+}
 
-  content = templatefile(var.metricbeat_template_path, {
-    elasticsearch_ip = aws_instance.elasticsearch.public_ip
-  })
+resource "local_file" "kibana_config" {
+  content = templatefile(
+    "${var.working_dir}/${var.kibana_template_path}", 
+    {
+      elasticsearch_ip = aws_instance.elasticsearch.public_ip
+    }
+  )
+  filename = "${var.working_dir}/${var.kibana_rendered_path}"
+}
 
-  filename = var.metricbeat_rendered_path
+# public ips are used in the inventory (ansible must be able to connect to them)
+resource "local_file" "ansible_inventory" {
+
+  content = templatefile(
+    "${var.working_dir}/${var.ansible_inventory_template_path}", 
+    {
+      user = var.ec2_user,
+      private_key_path = "${var.working_dir}/${var.private_key_path}",
+
+      service_ips = aws_instance.service[*].public_ip,
+      elasticsearch_ip = aws_instance.elasticsearch.public_ip,
+      kibana_ip = aws_instance.kibana.public_ip,
+    
+      elk_version = var.elk_version,
+   
+      metricbeat_config = "${var.working_dir}/${var.metricbeat_rendered_path}",
+      kibana_config = "${var.working_dir}/${var.kibana_rendered_path}"
+    }
+  )
+  filename = "${var.working_dir}/${var.ansible_inventory_rendered_path}"
 }
 
 resource "null_resource" "run_ansible" { 
@@ -26,12 +48,14 @@ resource "null_resource" "run_ansible" {
     command = <<EOT
       export ANSIBLE_HOST_KEY_CHECKING=False &&
       %{for playbook in var.ansible_playbooks}
-      ansible-playbook -i ${var.ansible_inventory_rendered_path} ${playbook} \
+      ansible-playbook -i "${var.working_dir}/${var.ansible_inventory_rendered_path}" "${var.working_dir}/${playbook}" \
       %{endfor}
     EOT
   }
   
   depends_on = [
-    local_file.ansible_inventory
+    local_file.ansible_inventory,
+    local_file.metricbeat_config,
+    local_file.kibana_config
   ]
 }

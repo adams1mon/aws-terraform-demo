@@ -4,6 +4,7 @@
   tasks:
     - name: install nginx
       shell: amazon-linux-extras install nginx1 -y
+      ignore_errors: true
     - name: copy website
       copy: 
         src: index.html

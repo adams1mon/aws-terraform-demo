@@ -2,10 +2,14 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      # version = "3.37.0"
       version = "~> 4.16"
     }
   }
+}
+
+locals {
+  public_key_path_adjusted = "${var.working_dir}/${var.public_key_path}"
+  private_key_path_adjusted = "${var.working_dir}/${var.private_key_path}"
 }
 
 provider "aws" {
@@ -71,6 +75,38 @@ resource "aws_security_group" "service_secgroup" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  depends_on = [
+    aws_vpc.vpc
+  ]
+
+  tags = {
+    env = var.env_tag
+  }
+}
+
+
+resource "aws_security_group" "all_secgroup" {
+  name   = "all_secgroup"
+  vpc_id = aws_vpc.vpc.id
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -89,7 +125,7 @@ resource "aws_security_group" "service_secgroup" {
 
 resource "aws_key_pair" "key_pair" {
   key_name   = var.key_pair_name
-  public_key = file(var.public_key_path)
+  public_key = file(local.public_key_path_adjusted)
 
   tags = {
     env = var.env_tag
@@ -102,13 +138,15 @@ resource "aws_instance" "service" {
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
-  vpc_security_group_ids = [aws_security_group.service_secgroup.id]
+  # vpc_security_group_ids = [aws_security_group.service_secgroup.id]
+  vpc_security_group_ids = [aws_security_group.all_secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
 
   depends_on = [
     aws_subnet.subnet,
-    aws_security_group.service_secgroup,
+    # aws_security_group.service_secgroup,
+    aws_security_group.all_secgroup,
     aws_key_pair.key_pair
   ]
 
@@ -124,16 +162,15 @@ resource "aws_instance" "service" {
       host = aws_instance.service[count.index].public_ip
       user = var.ec2_user
       type = "ssh"
-      private_key = file(var.private_key_path)
+      private_key = file(local.private_key_path_adjusted)
     }
 
     inline = ["echo terraform connected!"]
   }
 }
 
-
-resource "aws_security_group" "monitoring_secgroup" {
-  name   = "monitoring_secgroup"
+resource "aws_security_group" "elasticsearch_secgroup" {
+  name   = "elasticsearch_secgroup"
   vpc_id = aws_vpc.vpc.id
   ingress {
     from_port   = 22
@@ -164,17 +201,57 @@ resource "aws_security_group" "monitoring_secgroup" {
   }
 }
 
+resource "aws_security_group" "kibana_secgroup" {
+  name   = "kibana_secgroup"
+  vpc_id = aws_vpc.vpc.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # all traffic from inside the vpc
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  depends_on = [
+    aws_vpc.vpc
+  ]
+
+  tags = {
+    env = var.env_tag
+  }
+}
+
 resource "aws_instance" "elasticsearch" {
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
-  vpc_security_group_ids = [aws_security_group.monitoring_secgroup.id]
+  # vpc_security_group_ids = [aws_security_group.elasticsearch_secgroup.id]
+  vpc_security_group_ids = [aws_security_group.all_secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
 
   depends_on = [
     aws_subnet.subnet,
-    aws_security_group.monitoring_secgroup,
+    # aws_security_group.elasticsearch_secgroup,
+    aws_security_group.all_secgroup,
     aws_key_pair.key_pair
   ]
 
@@ -190,7 +267,7 @@ resource "aws_instance" "elasticsearch" {
       host = self.public_ip
       user = var.ec2_user
       type = "ssh"
-      private_key = file(var.private_key_path)
+      private_key = file(local.private_key_path_adjusted)
     }
 
     inline = ["echo terraform connected!"]
@@ -201,13 +278,15 @@ resource "aws_instance" "kibana" {
   ami                    = var.ec2_ami
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet.id
-  vpc_security_group_ids = [aws_security_group.monitoring_secgroup.id]
+  # vpc_security_group_ids = [aws_security_group.kibana_secgroup.id]
+  vpc_security_group_ids = [aws_security_group.all_secgroup.id]
 
   key_name = aws_key_pair.key_pair.id
 
   depends_on = [
     aws_subnet.subnet,
-    aws_security_group.monitoring_secgroup,
+    # aws_security_group.kibana_secgroup,
+    aws_security_group.all_secgroup,
     aws_key_pair.key_pair
   ]
 
@@ -223,7 +302,7 @@ resource "aws_instance" "kibana" {
       host = self.public_ip
       user = var.ec2_user
       type = "ssh"
-      private_key = file(var.private_key_path)
+      private_key = file(local.private_key_path_adjusted)
     }
 
     inline = ["echo terraform connected!"]

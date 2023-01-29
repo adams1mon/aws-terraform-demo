@@ -34,6 +34,9 @@ variable "env_tag" {
   default = "aws-terraform-demo"
 }
 
+variable "working_dir" {
+}
+
 variable "public_key_path" {
 }
 
@@ -54,6 +57,12 @@ variable "metricbeat_template_path" {
 }
 
 variable "metricbeat_rendered_path" {
+}
+
+variable "kibana_template_path"{
+}
+
+variable "kibana_rendered_path" {
 }
 
 variable "elk_version" {
