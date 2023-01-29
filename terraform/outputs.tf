@@ -3,6 +3,7 @@ resource "local_file" "ansible_inventory" {
   content = templatefile(var.ansible_inventory_template_path, {
     service_ips = aws_instance.service[*].public_ip,
     elasticsearch_ip = aws_instance.elasticsearch.public_ip,
+    kibana_ip = aws_instance.kibana.public_ip,
     elk_version = var.elk_version,
     user = var.ec2_user,
     private_key_path = var.private_key_path

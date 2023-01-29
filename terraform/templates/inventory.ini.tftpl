@@ -5,11 +5,18 @@
 ${ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
 %{ endfor ~}
 
-[services:vars]
-elk_version = ${elk_version}
-
 [elasticsearch]
 ${elasticsearch_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
 
-[elasticsearch:vars]
+[kibana]
+${kibana_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
+
+
+# define group 'all', set variables for instances in the group
+[all:children]
+services
+elasticsearch
+kibana
+
+[all:vars]
 elk_version = ${elk_version}
