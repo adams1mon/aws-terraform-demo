@@ -7,6 +7,7 @@
               wget https://artifacts.elastic.co/downloads/kibana/kibana-{{ elk_version }}-x86_64.rpm"
     - name: install kibana
       shell: "rpm -i kibana-{{ elk_version }}-x86_64.rpm"
+      # ignore error if the package is already installed
       ignore_errors: true
     - name: copy kibana config
       copy:

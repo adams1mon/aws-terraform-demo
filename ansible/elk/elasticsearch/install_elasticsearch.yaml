@@ -7,11 +7,16 @@
              wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elk_version }}-x86_64.rpm"
     - name: install elasticsearch
       shell: "rpm -i elasticsearch-{{ elk_version }}-x86_64.rpm"
+      # ignore error if the package is already installed
       ignore_errors: true
     - name: copy jvm options
       copy: 
         src: jvm.options
         dest: /etc/elasticsearch/jvm.options.d/
+    - name: copy elasticsearch config
+      copy:
+        src: elasticsearch.yml
+        dest: /etc/elasticsearch/elasticsearch.yml
     - name: start elasticsearch via systemctl
       shell: "sudo /bin/systemctl daemon-reload && \
               sudo systemctl start elasticsearch.service"

@@ -1,3 +1,5 @@
+##############################  AWS  ##############################
+
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -34,36 +36,49 @@ variable "env_tag" {
   default = "aws-terraform-demo"
 }
 
+############################## Other paths ##############################
+
 variable "working_dir" {
 }
 
-variable "public_key_path" {
+variable "public_key" {
 }
 
-variable "private_key_path" {
+variable "private_key" {
 }
 
-variable "ansible_inventory_template_path" {
+variable "ansible_inventory_template" {
 }
 
-variable "ansible_inventory_rendered_path" {
+variable "ansible_inventory_rendered" {
 }
 
 variable "ansible_playbooks" {
   type = list
 }
 
-variable "metricbeat_template_path" {
-}
-
-variable "metricbeat_rendered_path" {
-}
-
-variable "kibana_template_path"{
-}
-
-variable "kibana_rendered_path" {
-}
+############################## ELK Stack ##############################
 
 variable "elk_version" {
+}
+
+variable "metricbeat_template" {
+}
+
+variable "metricbeat_rendered" {
+}
+
+variable "kibana_template"{
+}
+
+variable "kibana_rendered" {
+}
+
+variable "logstash_pipelines_rendered" {
+}
+
+variable "logstash_metricbeat_pipeline" {
+}
+
+variable "logstash_metricbeat_pipeline_rendered" {
 }

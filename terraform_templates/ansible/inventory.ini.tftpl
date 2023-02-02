@@ -2,14 +2,20 @@
 
 [services]
 %{ for ip in service_ips ~}
-${ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
+${ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
 %{ endfor ~}
 
+[logstash]
+${logstash_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
+
+[logstash:vars]
+logstash_pipelines=${logstash_pipelines}
+
 [elasticsearch]
-${elasticsearch_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
+${elasticsearch_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
 
 [kibana]
-${kibana_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key_path}
+${kibana_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
 
 [kibana:vars]
 kibana_config = ${kibana_config}
@@ -17,6 +23,7 @@ kibana_config = ${kibana_config}
 # define group 'all', set variables for instances in the group
 [all:children]
 services
+logstash
 elasticsearch
 kibana
 

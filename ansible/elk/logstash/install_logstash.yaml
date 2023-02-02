@@ -1,0 +1,36 @@
+- name: install and configure logstash
+  hosts: logstash
+  become: true
+  tasks:
+    - name: download logstash
+      shell: "ls | grep -q '^logstash-{{ elk_version }}-x86_64.rpm$' || \
+             wget https://artifacts.elastic.co/downloads/logstash/logstash-{{ elk_version }}-x86_64.rpm"
+
+    - name: install logstash
+      shell: "rpm -i logstash-{{ elk_version }}-x86_64.rpm"
+      # ignore error if the package is already installed
+      ignore_errors: true
+
+    - name: copy jvm options
+      copy: 
+        src: jvm.options
+        dest: /etc/logstash/jvm.options
+        
+    - name: copy logstash config
+      copy:
+        src: logstash.yml
+        dest: /etc/logstash/logstash.yml
+
+    - name: copy pipelines config (pipelines.yml)
+      copy: 
+        src: pipelines.yml
+        dest: /etc/logstash/pipelines.yml
+
+    - name: copy pipelines
+      copy:
+        src: {{ logstash_pipelines }}
+        dest: /etc/logstash/conf.d/
+
+    - name: start logstash via systemctl
+      shell: "sudo /bin/systemctl daemon-reload && \
+              sudo systemctl start logstash.service"
