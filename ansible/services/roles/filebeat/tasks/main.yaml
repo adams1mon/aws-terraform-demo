@@ -1,0 +1,32 @@
+- name: download filebeat
+  shell: "ls | grep -q '^filebeat-{{ elk_version }}-x86_64.rpm$' || \
+              wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ elk_version }}-x86_64.rpm"
+    
+- name: install filebeat
+  shell: "rpm -i filebeat-{{ elk_version }}-x86_64.rpm"
+  ignore_errors: true
+    
+- name: copy filebeat config file
+  copy:
+    src: "{{ filebeat_config }}"
+    dest: /etc/filebeat/filebeat.yml
+
+- name: enable nginx module
+  shell: filebeat modules enable nginx
+  when: nginx_config is defined
+
+- name: download yq if logging directory needs to be changed
+  shell: wget https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64 -O /usr/bin/yq && \
+         chmod +x /usr/bin/yq
+  when: log_path is defined
+
+- name: change logs to watch
+  shell: "yq -i '.\"filebeat.inputs\".[] |= select(.type == \"log\").paths = [ \"{{ log_path }}\" ]' /etc/filebeat/filebeat.yml && \
+          yq -i '.\"filebeat.inputs\".[] |= select(.type == \"log\").enabled = true' /etc/filebeat/filebeat.yml"
+  when: log_path is defined
+
+- name: start filebeat
+  service:
+    name: filebeat
+    state: started
+      

@@ -1,0 +1,14 @@
+- name: setup an nginx webserver, and filebeat and metricbeat for monitoring
+  hosts: services
+  become: true
+  vars:
+    webpage_path: "./webserver/index.html"
+  roles:
+    - nginx
+
+    - metricbeat
+
+    - role: filebeat
+      vars: 
+        nginx_config: true
+

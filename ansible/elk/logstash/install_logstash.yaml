@@ -27,10 +27,15 @@
         dest: /etc/logstash/pipelines.yml
 
     - name: copy pipelines
-      copy:
-        src: {{ logstash_pipelines }}
+      ansible.builtin.copy:
+        src: "{{ item }}"
         dest: /etc/logstash/conf.d/
+      with_fileglob:
+        - "{{ logstash_pipelines }}"
 
     - name: start logstash via systemctl
       shell: "sudo /bin/systemctl daemon-reload && \
               sudo systemctl start logstash.service"
+
+    # - name: run logstash
+    #   shell: /usr/share/logstash/bin/logstash --path.settings=/etc/logstash

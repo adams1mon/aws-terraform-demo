@@ -5,6 +5,9 @@
 ${ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
 %{ endfor ~}
 
+[scraper]
+${scraper_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
+
 [logstash]
 ${logstash_ip} ansible_ssh_user=${user} ansible_ssh_private_key_file=${private_key}
 
@@ -30,3 +33,4 @@ kibana
 [all:vars]
 elk_version = ${elk_version}
 metricbeat_config = ${metricbeat_config}
+filebeat_config=${filebeat_config}

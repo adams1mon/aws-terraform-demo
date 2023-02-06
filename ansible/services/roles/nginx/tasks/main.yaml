@@ -1,0 +1,13 @@
+- name: install nginx
+  shell: amazon-linux-extras install nginx1 -y
+  ignore_errors: true
+  
+- name: copy website
+  copy: 
+    src: "{{ webpage_path }}"
+    dest: /usr/share/nginx/html/
+    
+- name: start nginx
+  service:
+    name: nginx
+    state: started
