@@ -62,12 +62,6 @@ variable "ansible_playbooks" {
 variable "elk_version" {
 }
 
-variable "metricbeat_template" {
-}
-
-variable "metricbeat_rendered" {
-}
-
 variable "kibana_template"{
 }
 
@@ -77,8 +71,20 @@ variable "kibana_rendered" {
 variable "logstash_pipelines_rendered" {
 }
 
-variable "logstash_metricbeat_pipeline" {
+variable "logstash_beats_pipeline" {
 }
 
-variable "logstash_metricbeat_pipeline_rendered" {
+variable "logstash_beats_pipeline_rendered" {
+}
+
+variable "metricbeat_template" {
+}
+
+variable "metricbeat_rendered" {
+}
+
+variable "filebeat_template" {
+}
+
+variable "filebeat_rendered" {
 }

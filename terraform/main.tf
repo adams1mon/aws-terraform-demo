@@ -152,6 +152,7 @@ resource "aws_security_group" "kibana_secgroup" {
 }
 
 resource "aws_instance" "service" {
+  # arbitrary service counts, just to explore this functionality too
   count = var.service_count
 
   ami                    = var.ec2_ami
@@ -182,6 +183,44 @@ resource "aws_instance" "service" {
   provisioner "remote-exec" {
     connection {
       host = aws_instance.service[count.index].public_ip
+      user = var.ec2_user
+      type = "ssh"
+      private_key = file(local.private_key_path_adjusted)
+    }
+
+    inline = ["echo terraform connected!"]
+  }
+}
+
+
+resource "aws_instance" "scraper" {
+
+  ami                    = var.ec2_ami
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.subnet.id
+
+  vpc_security_group_ids = [
+    aws_security_group.vpc_internal_secgroup.id, 
+  ]
+
+  key_name = aws_key_pair.key_pair.id
+
+  depends_on = [
+    aws_subnet.subnet,
+    aws_security_group.vpc_internal_secgroup,
+    aws_key_pair.key_pair
+  ]
+
+  tags = {
+    env = var.env_tag
+    role = "service",
+    name = "scraper"
+  }
+
+  # wait until the resource is "reachable" by connecting to it
+  provisioner "remote-exec" {
+    connection {
+      host = aws_instance.scraper.public_ip
       user = var.ec2_user
       type = "ssh"
       private_key = file(local.private_key_path_adjusted)

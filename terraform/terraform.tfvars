@@ -12,20 +12,23 @@ ansible_playbooks = [
   "ansible/elk/elasticsearch/install_elasticsearch.yaml",
   "ansible/elk/logstash/install_logstash.yaml",
   "ansible/elk/kibana/install_kibana.yaml",
-  "ansible/services/install_nginx.yaml",
-  "ansible/services/setup_metricbeat.yaml",
+  "ansible/services/webserver.yaml",
+  "ansible/services/scraper.yaml",
 ]
 
 ############################## ELK Stack ##############################
 
 elk_version = "7.10.1"
 
-metricbeat_template = "terraform_templates/elk/beats/metricbeat.yml.tftpl"
-metricbeat_rendered = "terraform_generated/elk/beats/metricbeat.yml"
-
 kibana_template = "terraform_templates/elk/kibana/kibana.yml.tftpl"
 kibana_rendered = "terraform_generated/elk/kibana/kibana.yml"
 
 logstash_pipelines_rendered = "terraform_generated/elk/logstash/pipelines/*.conf"
-logstash_metricbeat_pipeline = "terraform_templates/elk/logstash/pipelines/metricbeat-pipeline.conf.tftpl"
-logstash_metricbeat_pipeline_rendered = "terraform_generated/elk/logstash/pipelines/metricbeat-pipeline.conf"
+logstash_beats_pipeline = "terraform_templates/elk/logstash/pipelines/beats-pipeline.conf.tftpl"
+logstash_beats_pipeline_rendered = "terraform_generated/elk/logstash/pipelines/beats-pipeline.conf"
+
+metricbeat_template = "terraform_templates/elk/beats/metricbeat.yml.tftpl"
+metricbeat_rendered = "terraform_generated/elk/beats/metricbeat.yml"
+
+filebeat_template = "terraform_templates/elk/beats/filebeat.yml.tftpl"
+filebeat_rendered = "terraform_generated/elk/beats/filebeat.yml"
