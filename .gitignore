@@ -33,4 +33,5 @@ keys/*
 *.pub
 *.pem
 
+endpoints*
 terraform_generated/*
