@@ -41,6 +41,9 @@ variable "env_tag" {
 variable "working_dir" {
 }
 
+variable "ip_list_file" {
+}
+
 variable "public_key" {
 }
 

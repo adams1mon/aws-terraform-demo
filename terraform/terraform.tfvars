@@ -1,7 +1,8 @@
 ############################## Other paths ##############################
+working_dir = "/home/adam/UBB/master_pdae/1_felev/agile_devops/aws-terraform-demo"
+ip_list_file = "terraform_generated./"
 
 public_key = "keys/demo_ec2.pub"
-working_dir = "/home/adam/UBB/master_pdae/1_felev/agile_devops/aws-terraform-demo"
 
 private_key = "keys/pdae-ec2.pem"
 
