@@ -8,8 +8,8 @@ terraform {
 }
 
 locals {
-  public_key_path_adjusted = "${var.working_dir}/${var.public_key}"
-  private_key_path_adjusted = "${var.working_dir}/${var.private_key}"
+  public_key_path_adjusted = "${path.cwd}/${var.public_key}"
+  private_key_path_adjusted = "${path.cwd}/${var.private_key}"
 }
 
 provider "aws" {
@@ -43,13 +43,12 @@ resource "aws_route" "vpc_internet_access" {
   ]
 }
 
-
-# TODO: maybe put the logging and monitoring stack in a separate subnet
+# TODO: maybe create separate subnet for the ELK stack
 resource "aws_subnet" "subnet" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "10.0.1.0/24"
 
-  # TODO: each instance in this subnet gets a public ip
+  # each instance in this subnet gets a public ip
   map_public_ip_on_launch = true
   
   depends_on = [

@@ -1,53 +1,53 @@
 resource "local_file" "kibana_config" {
   content = templatefile(
-    "${var.working_dir}/${var.kibana_template}", 
+    "${path.cwd}/${var.kibana_template}", 
     {
       elasticsearch_ip = aws_instance.elasticsearch.private_ip
     }
   )
-  filename = "${var.working_dir}/${var.kibana_rendered}"
+  filename = "${path.cwd}/${var.kibana_rendered}"
 }
 
 resource "local_file" "logstash_beats_pipeline" {
   content = templatefile(
-    "${var.working_dir}/${var.logstash_beats_pipeline}", 
+    "${path.cwd}/${var.logstash_beats_pipeline}", 
     {
       elasticsearch_ip = aws_instance.elasticsearch.private_ip,
     }
   )
-  filename = "${var.working_dir}/${var.logstash_beats_pipeline_rendered}"
+  filename = "${path.cwd}/${var.logstash_beats_pipeline_rendered}"
 }
 
 resource "local_file" "metricbeat_config" {
   content = templatefile(
-    "${var.working_dir}/${var.metricbeat_template}", 
+    "${path.cwd}/${var.metricbeat_template}", 
     {
       logstash_ip = aws_instance.logstash.private_ip,
       kibana_ip = aws_instance.kibana.private_ip
     }
   )
-  filename = "${var.working_dir}/${var.metricbeat_rendered}"
+  filename = "${path.cwd}/${var.metricbeat_rendered}"
 }
 
 resource "local_file" "filebeat_config" {
   content = templatefile(
-    "${var.working_dir}/${var.filebeat_template}", 
+    "${path.cwd}/${var.filebeat_template}", 
     {
       logstash_ip = aws_instance.logstash.private_ip,
       kibana_ip = aws_instance.kibana.private_ip
     }
   )
-  filename = "${var.working_dir}/${var.filebeat_rendered}"
+  filename = "${path.cwd}/${var.filebeat_rendered}"
 }
 
 # public ips are used in the inventory (ansible must be able to connect to them)
 resource "local_file" "ansible_inventory" {
 
   content = templatefile(
-    "${var.working_dir}/${var.ansible_inventory_template}", 
+    "${path.cwd}/${var.ansible_inventory_template}", 
     {
       user = var.ec2_user,
-      private_key = "${var.working_dir}/${var.private_key}",
+      private_key = "${path.cwd}/${var.private_key}",
 
       service_ips = aws_instance.service[*].public_ip,
       scraper_ip = aws_instance.scraper.public_ip,
@@ -58,14 +58,14 @@ resource "local_file" "ansible_inventory" {
     
       elk_version = var.elk_version,
    
-      kibana_config = "${var.working_dir}/${var.kibana_rendered}"
-      logstash_pipelines = "${var.working_dir}/${var.logstash_pipelines_rendered}"
+      kibana_config = "${path.cwd}/${var.kibana_rendered}"
+      logstash_pipelines = "${path.cwd}/${var.logstash_pipelines_rendered}"
 
-      metricbeat_config = "${var.working_dir}/${var.metricbeat_rendered}",
-      filebeat_config = "${var.working_dir}/${var.filebeat_rendered}",
+      metricbeat_config = "${path.cwd}/${var.metricbeat_rendered}",
+      filebeat_config = "${path.cwd}/${var.filebeat_rendered}",
     }
   )
-  filename = "${var.working_dir}/${var.ansible_inventory_rendered}"
+  filename = "${path.cwd}/${var.ansible_inventory_rendered}"
 }
 
 resource "null_resource" "run_ansible" { 
@@ -74,8 +74,8 @@ resource "null_resource" "run_ansible" {
       export ANSIBLE_HOST_KEY_CHECKING=False &&
       %{for playbook in var.ansible_playbooks}
       ansible-playbook \
-        -i "${var.working_dir}/${var.ansible_inventory_rendered}" \
-        "${var.working_dir}/${playbook}"
+        -i "${path.cwd}/${var.ansible_inventory_rendered}" \
+        "${path.cwd}/${playbook}"
       %{endfor}
     EOT
   }
@@ -87,4 +87,22 @@ resource "null_resource" "run_ansible" {
       local_file.kibana_config
     ]
   }
+}
+
+resource "local_file" "public_ips" {
+
+  # inventory contains all the ips
+  depends_on = [
+    local_file.ansible_inventory
+  ]
+
+  content = <<EOT
+  services:
+    %{for ip in aws_instance.service[*].public_ip}
+    ${ip ~}
+    %{endfor}
+  kibana:
+    ${aws_instance.kibana.public_ip}
+  EOT
+  filename = "${path.cwd}/${var.public_ip_file}"
 }

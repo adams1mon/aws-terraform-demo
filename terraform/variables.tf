@@ -37,8 +37,7 @@ variable "env_tag" {
 }
 
 ############################## Other paths ##############################
-
-variable "working_dir" {
+variable "public_ip_file" {
 }
 
 variable "public_key" {

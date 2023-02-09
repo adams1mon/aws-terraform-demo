@@ -1,18 +1,13 @@
 - name: setup a python web scraper
   hosts: services
   become: true
-  vars:
-    log_path: /var/log/scraper/*.log
-
-  roles:
-    - role: filebeat
 
   tasks:
     - name: install git
       shell: yum install git -y
     
     - name: clone the scraper's repository and cd into it
-      shell: git clone https://github.com/adams1mon/scraper-demo.git
+      shell: ls | grep -q scraper-demo || git clone https://github.com/adams1mon/scraper-demo.git
     
     - name: install dependencies
       shell: pip3 install -r scraper-demo/requirements.txt
@@ -22,3 +17,10 @@
 
     - name: start crawler with 'nohup', so it runs after logging out
       shell: cd scraper-demo && nohup ./run_crawler.sh >/dev/null & 
+    
+    - name: install and start filebeat
+      include_role:
+        name: filebeat
+      vars:
+        log_path: /var/log/scraper/*.log
+          
